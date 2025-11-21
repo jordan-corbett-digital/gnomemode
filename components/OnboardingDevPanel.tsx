@@ -107,6 +107,14 @@ export default function OnboardingDevPanel() {
                 Next →
               </button>
             </div>
+            <button
+              onClick={() => {
+                dispatch({ type: 'NAVIGATE_TO', payload: 'garden' });
+              }}
+              className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 rounded text-sm font-semibold"
+            >
+              🏠 Go to Home
+            </button>
           </div>
 
           {ONBOARDING_STEPS.length > 0 ? (

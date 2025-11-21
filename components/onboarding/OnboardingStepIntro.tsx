@@ -5,10 +5,15 @@ export default function OnboardingStepIntro() {
   const { dispatch } = useAppState();
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const underscoreRef = useRef<HTMLAudioElement>(null);
+  const soundEffectRef = useRef<HTMLAudioElement>(null);
   const [showButton, setShowButton] = useState(false);
   const [videoDuration, setVideoDuration] = useState(0);
+  const [isCrossfading, setIsCrossfading] = useState(false);
   const loopStartTime = videoDuration > 0 ? videoDuration - 5 : 0;
   const buttonRevealTime = videoDuration > 0 ? videoDuration - 8 : 0; // Show logo/button 3 seconds before loop starts
+  const videoAudioFadeStartTime = videoDuration > 0 ? videoDuration - 10 : 0; // Start fading video audio 10 seconds before end
+  const videoAudioFadeDuration = 7; // Fade out over 7 seconds
 
   useEffect(() => {
     // Start video muted (browsers allow this), then unmute once playing
@@ -50,14 +55,72 @@ export default function OnboardingStepIntro() {
   }, []);
 
   const handleJoinFight = () => {
-    // Stop the background music
-    const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
+    // Play sound effect
+    const soundEffect = soundEffectRef.current;
+    if (soundEffect) {
+      soundEffect.currentTime = 0;
+      soundEffect.volume = 1.0;
+      soundEffect.play().catch(console.error);
     }
-    // Go to next onboarding step (Slappy dialogue)
-    dispatch({ type: 'NEXT_ONBOARDING_STEP' });
+
+    // Start crossfade: fade out main theme, fade in underscore
+    const video = videoRef.current;
+    const audio = audioRef.current;
+    const underscore = underscoreRef.current;
+    
+    if (isCrossfading) return; // Prevent multiple clicks
+    setIsCrossfading(true);
+
+    // Start playing underscore at volume 0
+    if (underscore) {
+      underscore.volume = 0;
+      underscore.loop = true;
+      underscore.play().catch(console.error);
+    }
+
+    // Fade out video's embedded audio smoothly (separate from music crossfade)
+    const videoFadeDuration = 2000; // 2 seconds for video audio fade
+    const audioFadeDuration = 2000; // 2 seconds for music crossfade
+    const startTime = Date.now();
+    const startMainVolume = audio ? audio.volume : 1.0;
+    const startVideoVolume = video ? video.volume : 1.0;
+
+    const fadeInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const audioProgress = Math.min(elapsed / audioFadeDuration, 1);
+      const videoProgress = Math.min(elapsed / videoFadeDuration, 1);
+
+      // Fade out video's embedded audio smoothly (ease-out for smooth fade)
+      if (video) {
+        const videoEasedProgress = 1 - Math.pow(1 - videoProgress, 3); // Ease-out cubic
+        video.volume = Math.max(0, startVideoVolume * (1 - videoEasedProgress));
+      }
+
+      // Fade out main theme music (crossfade with underscore)
+      if (audio) {
+        audio.volume = startMainVolume * (1 - audioProgress);
+      }
+
+      // Fade in underscore music
+      if (underscore) {
+        underscore.volume = audioProgress;
+      }
+
+      // When fade is complete
+      if (videoProgress >= 1 && audioProgress >= 1) {
+        clearInterval(fadeInterval);
+        if (audio) {
+          audio.pause();
+          audio.currentTime = 0;
+        }
+        if (video) {
+          video.volume = 0;
+          video.pause();
+        }
+        // Go to next onboarding step (Slappy dialogue)
+        dispatch({ type: 'NEXT_ONBOARDING_STEP' });
+      }
+    }, 16); // ~60fps update rate
   };
 
   const handleSkip = () => {
@@ -81,30 +144,41 @@ export default function OnboardingStepIntro() {
     if (!video || videoDuration === 0) return;
 
     const currentTime = video.currentTime;
-    const fadeDuration = 3; // Fade out over 3 seconds
-    const fadeStartTime = videoDuration - fadeDuration;
     
     // Show logo/button a few seconds before the loop starts
     if (currentTime >= buttonRevealTime && !showButton) {
       setShowButton(true);
     }
 
-    // Fade out audio as video approaches the end
-    if (currentTime >= fadeStartTime && currentTime < loopStartTime) {
+    // Fade out video's embedded audio earlier (before button appears)
+    if (videoDuration > 0 && currentTime >= videoAudioFadeStartTime && currentTime < loopStartTime) {
       // Calculate fade progress (0 to 1)
-      const fadeProgress = (currentTime - fadeStartTime) / fadeDuration;
-      const targetVolume = 1 - fadeProgress; // Fade from 1 to 0
+      const fadeProgress = (currentTime - videoAudioFadeStartTime) / videoAudioFadeDuration;
+      // Use easing function for smoother fade (ease-out)
+      const easedProgress = Math.min(1, 1 - Math.pow(1 - fadeProgress, 3));
+      const targetVolume = 1 - easedProgress; // Fade from 1 to 0
       
-      // Fade out video audio
+      // Fade out video's embedded audio
       video.volume = Math.max(0, targetVolume);
+    } else if (videoDuration > 0 && currentTime < videoAudioFadeStartTime) {
+      // Keep video at full volume before fade starts
+      video.volume = 1.0;
+    }
+
+    // Fade out background music separately (closer to the end)
+    const musicFadeDuration = 3;
+    const musicFadeStartTime = videoDuration - musicFadeDuration;
+    if (currentTime >= musicFadeStartTime && currentTime < loopStartTime) {
+      const musicFadeProgress = (currentTime - musicFadeStartTime) / musicFadeDuration;
+      const musicEasedProgress = 1 - Math.pow(1 - musicFadeProgress, 3);
+      const musicTargetVolume = 1 - musicEasedProgress;
       
       // Fade out background music
       if (audio) {
-        audio.volume = Math.max(0, targetVolume);
+        audio.volume = Math.max(0, musicTargetVolume);
       }
-    } else if (currentTime < fadeStartTime) {
-      // Reset to full volume if we're before the fade (in case we looped back)
-      video.volume = 1.0;
+    } else if (currentTime < musicFadeStartTime) {
+      // Reset music to full volume if we're before the fade
       if (audio) {
         audio.volume = 1.0;
       }
@@ -206,7 +280,7 @@ export default function OnboardingStepIntro() {
         Your browser does not support the video tag.
       </video>
 
-      {/* Background Music */}
+      {/* Background Music - Main Theme */}
       <audio
         ref={audioRef}
         loop
@@ -226,6 +300,33 @@ export default function OnboardingStepIntro() {
       >
         <source 
           src="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/intro-song.mp3?alt=media&token=33fbc6d1-d787-4946-bc9f-04e22dcd86ac" 
+          type="audio/mpeg" 
+        />
+        Your browser does not support the audio tag.
+      </audio>
+
+      {/* Underscore Music - Crossfades in when Join the Fight is clicked */}
+      <audio
+        ref={underscoreRef}
+        loop
+        preload="auto"
+        style={{ display: 'none' }}
+      >
+        <source 
+          src="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/underscore.mp3?alt=media&token=76f6991a-f4b3-46a2-8136-37d4fc976656" 
+          type="audio/mpeg" 
+        />
+        Your browser does not support the audio tag.
+      </audio>
+
+      {/* Join the Fight Sound Effect */}
+      <audio
+        ref={soundEffectRef}
+        preload="auto"
+        style={{ display: 'none' }}
+      >
+        <source 
+          src="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/jointhefightsoundeffect.mp3?alt=media&token=0b50bd94-7daf-4383-8101-4099e144771d" 
           type="audio/mpeg" 
         />
         Your browser does not support the audio tag.
