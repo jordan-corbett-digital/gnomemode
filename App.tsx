@@ -19,7 +19,7 @@ import { useGoalStore } from './stores/goalStore';
 // import ChooseMushroomScreen from './components/ChooseMushroomScreen';
 
 const initialState: AppState = {
-  screen: 'garden', // Start with home screen
+  screen: 'onboarding', // Start with onboarding (Start Demo page)
   onboardingStep: 1, // Start at step 1 for new flow
   onboardingData: {}, // Clean slate - add data as needed
   garden: {
@@ -42,7 +42,7 @@ const LOCAL_STORAGE_KEY = 'gnomeModeState';
 const appReducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
     case 'START_ONBOARDING':
-      return { ...state, screen: 'onboarding', onboardingStep: 1 };
+      return { ...state, screen: 'onboarding', onboardingStep: 1, onboardingData: {} };
     case 'NEXT_ONBOARDING_STEP':
       return { ...state, onboardingStep: state.onboardingStep + 1 };
     case 'SET_ONBOARDING_STEP':
@@ -115,8 +115,14 @@ const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ children })
             const savedStateJSON = localStorage.getItem(LOCAL_STORAGE_KEY);
             if (savedStateJSON) {
                 const savedState = JSON.parse(savedStateJSON);
-                // Merge with initial state to handle any new properties added to the state shape
-                return { ...defaultInitialState, ...savedState }; 
+                // If saved state has screen as 'garden', user completed onboarding - use saved state
+                // Otherwise, always start at onboarding step 1
+                if (savedState.screen === 'garden') {
+                    return { ...defaultInitialState, ...savedState };
+                } else {
+                    // Force onboarding step 1 for new users or incomplete onboarding
+                    return { ...defaultInitialState, ...savedState, screen: 'onboarding', onboardingStep: 1 };
+                }
             }
         } catch (error) {
             console.error("Error reading from localStorage", error);
