@@ -1,0 +1,5 @@
+{
+  "name": "SpiteGarden",
+  "description": "A gamified habit-tracking app that turns negative motivation into growth. Users pick a goal, set a wager, and choose an organization they dislike. If they fail a check-in, part of their wager is theoretically donated to that nemesis.",
+  "requestFramePermissions": []
+}

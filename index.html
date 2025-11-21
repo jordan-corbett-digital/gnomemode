@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gnome Mode</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" href="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/bouncing-gnome.webm?alt=media&token=59e9d7ff-b187-47f6-b8ed-78ee1fd69cab" as="video" type="video/webm">
+    <link rel="preload" href="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/walking.webm?alt=media&token=34912a19-e256-447b-bb26-203c1d8903cf" as="video" type="video/webm">
+    <link rel="preload" href="/assets/gnome-icon.webm" as="video" type="video/webm">
+    <link rel="preload" href="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/bg%20home.png?alt=media&token=ec4152f2-b1b3-44fc-8f96-a8eb1e6b8409" as="image">
+    <link rel="preload" href="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/menu-icon.png?alt=media&token=4e703bed-7e09-49f1-b663-386ba7513c7c" as="image">
+    <link rel="preload" href="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/home-icon.png?alt=media&token=7eaaa8c3-6f2f-4664-b6a6-f9be936bc453" as="image">
+    <link rel="preload" href="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/quests-icon2%20(1).png?alt=media&token=44fd06db-9af2-4044-84dc-937a72ed630e" as="image">
+    <link rel="preload" href="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/check-icon.png?alt=media&token=f116bc5f-c906-491b-8fc2-e4b4eebdb3a0" as="image">
+    <link rel="preload" href="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/goals-icon.png?alt=media&token=3c012d05-0a12-42b2-81f5-588d27f2cba9" as="image">
+    <link rel="preload" href="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/shop-icon.png?alt=media&token=4edad559-b97d-4329-8a77-542ca67c753c" as="image">
+    <link rel="preload" href="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/profile-icon.png?alt=media&token=dc4fcd66-f474-458b-9668-b27466e66808" as="image">
+    <link rel="preload" href="https://firebasestorage.googleapis.com/v0/b/spitegarden.firebasestorage.app/o/bubble-icon%20(1).png?alt=media&token=6b6f1dc1-1531-40bb-b4df-8e2b56a6352e" as="image">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Fredoka', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      @keyframes confetti-fall {
+        0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+      }
+      .confetti {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        animation: confetti-fall 3s linear infinite;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-gray-900">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
