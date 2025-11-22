@@ -307,13 +307,16 @@ export default function OnboardingStepSlappy() {
   }, [currentBeat, currentLineIndex, isFadingOut]);
 
   const handleForgeBond = () => {
-    // Navigate to next step or complete onboarding
-    dispatch({ type: 'NAVIGATE_TO', payload: 'garden' });
+    // Navigate to morning ritual intro step
+    dispatch({ type: 'SET_ONBOARDING_STEP', payload: 4 });
   };
 
   const handleSkip = () => {
-    // Skip the onboarding and go directly to garden
-    dispatch({ type: 'NAVIGATE_TO', payload: 'garden' });
+    // Skip to show the "Forge the Bond" button
+    setCurrentBeat(3);
+    setCurrentLineIndex(BEAT_3_DIALOGUE.length - 1);
+    setVideoState('loop3');
+    setShowButton(true);
   };
 
   return (

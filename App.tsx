@@ -13,6 +13,10 @@ import QuestsScreen from './components/QuestsScreen';
 import BottomNav from './components/BottomNav';
 import AssetPreloader from './components/AssetPreloader';
 import MorningRitualOnboarding from './components/MorningRitualOnboarding';
+import MorningRitualSetup from './components/MorningRitualSetup';
+import MorningRitualReward from './components/MorningRitualReward';
+import EveningRitualSetup from './components/EveningRitualSetup';
+import DailyGoalsSetup from './components/DailyGoalsSetup';
 import SettingsMenu from './components/SettingsMenu';
 import { useGameStore } from './stores/gameStore';
 import { useGoalStore } from './stores/goalStore';
@@ -169,12 +173,19 @@ const ScreenRenderer = () => {
                 return <CheckInScreen />;
             case 'checkin-response':
                 return <CheckInResponseScreen />;
+            case 'morning-ritual-reward':
+                return <MorningRitualReward />;
             case 'goals':
                 // Route to appropriate onboarding flow based on selected goal
                 if (goalStore.selectedGoalId === 'morning-ritual') {
-                    return <MorningRitualOnboarding />;
+                    return <MorningRitualSetup />;
                 }
-                // Add other goal flows here (evening-ritual, daily-goals, etc.)
+                if (goalStore.selectedGoalId === 'evening-ritual') {
+                    return <EveningRitualSetup />;
+                }
+                if (goalStore.selectedGoalId === 'daily-goals') {
+                    return <DailyGoalsSetup />;
+                }
                 return <div className="h-full w-full flex items-center justify-center p-6 bg-slate-800 text-white">
                     <div className="text-center">
                         <h1 className="text-3xl font-bold mb-4">Goals</h1>

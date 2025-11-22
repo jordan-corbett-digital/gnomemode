@@ -1,5 +1,5 @@
 
-export type Screen = 'demo' | 'intro' | 'onboarding' | 'garden' | 'checkin' | 'checkin-response' | 'goals' | 'report' | 'quests' | 'shop' | 'inventory' | 'profile' | 'messages' | 'nemesis';
+export type Screen = 'demo' | 'intro' | 'onboarding' | 'garden' | 'checkin' | 'checkin-response' | 'goals' | 'report' | 'quests' | 'shop' | 'inventory' | 'profile' | 'messages' | 'nemesis' | 'morning-ritual-reward';
 
 export enum GardenStateEnum {
   Healthy = 'healthy',
@@ -46,6 +46,7 @@ export interface Quest {
   completed: boolean;
   createdAt: string;
   completedAt?: string;
+  duration?: number; // Duration in minutes
 }
 
 // Inventory Types
@@ -102,6 +103,25 @@ export interface CheckInRecord {
   aiResponse?: string;
   xpReward?: number;
   xpPenalty?: number; // If missed
+  createdAt: string;
+}
+
+// Ritual Types
+export type RitualType = 'morning' | 'evening';
+
+export interface RitualItem {
+  id: string;
+  text: string;
+  completed: boolean;
+  completedAt?: string;
+}
+
+export interface RitualSchedule {
+  type: RitualType;
+  items: RitualItem[];
+  setupCompleted: boolean;
+  completedToday: boolean;
+  completedAt?: string;
   createdAt: string;
 }
 

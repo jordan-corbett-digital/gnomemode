@@ -124,10 +124,11 @@ export default function OnboardingStepIntro() {
   };
 
   const handleSkip = () => {
+    // Skip to show the "Join the Fight" button
     const video = videoRef.current;
     const audio = audioRef.current;
     if (video && videoDuration > 0) {
-      // Jump directly to the 5-second loop
+      // Jump directly to the 5-second loop where button appears
       video.currentTime = loopStartTime;
       // Fade out audio when skipping to loop
       video.volume = 0;

@@ -11,28 +11,63 @@ interface QuestState {
   getDailyQuests: () => Quest[];
   getSpecialQuests: () => Quest[];
   generateDailyQuests: () => void;
+  generateSpecialQuests: () => void;
   reset: () => void;
 }
 
 // Daily quest templates
 const dailyQuestTemplates = [
   {
-    title: 'Complete a goal',
-    description: 'Complete any goal from your daily list',
+    title: 'Digital Detox',
+    description: 'Put your phone away for 30 minutes',
     rewardCoins: 5,
     rewardXP: 25,
+    duration: 30, // minutes
   },
   {
-    title: 'Stay Strong',
-    description: 'Avoid your habit for the entire day',
-    rewardCoins: 10,
-    rewardXP: 50,
-  },
-  {
-    title: 'Evening Reflection',
-    description: 'Complete your check-in and reflect on the day',
+    title: 'Stretch Break',
+    description: 'Stretch for the next 15 minutes',
     rewardCoins: 5,
     rewardXP: 25,
+    duration: 15, // minutes
+  },
+  {
+    title: 'Meditative Moment',
+    description: 'Take the next 5 minutes to close your eyes and breathe while limiting any thought.',
+    rewardCoins: 5,
+    rewardXP: 25,
+    duration: 5, // minutes
+  },
+];
+
+// Special quest templates
+const specialQuestTemplates = [
+  {
+    id: 'daily-warrior',
+    title: 'Daily Warrior',
+    description: 'Complete daily tasks 3 days in a row',
+    explanation: 'Complete your daily check-ins for 3 consecutive days to earn this achievement.',
+    rewardCoins: 50,
+    rewardXP: 100,
+    requiredDays: 3,
+  },
+  {
+    id: 'morning-marvel',
+    title: 'Morning Marvel',
+    description: 'Complete your morning ritual for 7 days',
+    explanation: 'Complete your morning ritual every day for 7 consecutive days to earn this achievement.',
+    rewardCoins: 75,
+    rewardXP: 150,
+    requiredDays: 7,
+  },
+  {
+    id: 'evening-master',
+    title: 'Evening Master',
+    description: 'Complete your evening ritual for 7 days',
+    explanation: 'Complete your evening ritual every day for 7 consecutive days to earn this achievement.',
+    rewardCoins: 75,
+    rewardXP: 150,
+    requiredDays: 7,
   },
 ];
 
@@ -71,24 +106,49 @@ export const useQuestStore = create<QuestState>()(
       generateDailyQuests: () => {
         const today = new Date().toISOString().split('T')[0];
         
-        // Update any existing quests with old title "Morning Check-In" to "Complete a goal"
-        set((state) => ({
-          quests: state.quests.map((q) =>
-            q.title === 'Morning Check-In'
-              ? { ...q, title: 'Complete a goal', description: 'Complete any goal from your daily list' }
-              : q
-          ),
-        }));
+        // Get existing incomplete daily quests
+        const incompleteDailyQuests = get().quests.filter((q) => q.type === 'daily' && !q.completed);
         
-        // Generate new quests if they don't exist for today
-        const existingQuests = get().quests.filter(
-          (q) => q.type === 'daily' && (q.createdAt.startsWith(today) || q.id.startsWith(`daily-${today}-`))
-        );
+        // If there are incomplete quests, replace them with new templates
+        if (incompleteDailyQuests.length > 0) {
+          // Remove incomplete daily quests (keep completed ones)
+          set((state) => ({
+            quests: state.quests.filter((q) => !(q.type === 'daily' && !q.completed)),
+          }));
+        }
         
-        if (existingQuests.length === 0) {
+        // Check if we need to create new quests (if none exist or we just removed incomplete ones)
+        const existingIncomplete = get().quests.filter((q) => q.type === 'daily' && !q.completed);
+        
+        if (existingIncomplete.length === 0) {
+          // Generate new quests based on templates
           const newQuests: Quest[] = dailyQuestTemplates.map((template, index) => ({
             id: `daily-${today}-${index}`,
             type: 'daily' as QuestType,
+            title: template.title,
+            description: template.description,
+            rewardCoins: template.rewardCoins,
+            rewardXP: template.rewardXP,
+            completed: false,
+            createdAt: new Date().toISOString(),
+            duration: template.duration,
+          }));
+          
+          set((state) => ({
+            quests: [...state.quests, ...newQuests],
+          }));
+        }
+      },
+      
+      generateSpecialQuests: () => {
+        // Check if special quests exist, if not create them
+        const existingSpecialQuests = get().quests.filter((q) => q.type === 'special');
+        
+        if (existingSpecialQuests.length === 0) {
+          // Generate special quests based on templates
+          const newQuests: Quest[] = specialQuestTemplates.map((template) => ({
+            id: template.id,
+            type: 'special' as QuestType,
             title: template.title,
             description: template.description,
             rewardCoins: template.rewardCoins,

@@ -7,6 +7,8 @@ import { useGoalStore } from '../stores/goalStore';
 import { useUserStore } from '../stores/userStore';
 import { useMessageStore } from '../stores/messageStore';
 import { useCheckInStore } from '../stores/checkInStore';
+import { useRitualStore } from '../stores/ritualStore';
+import { useDailyGoalsStore } from '../stores/dailyGoalsStore';
 import { useAppState } from '../App';
 import { generateGnomeMessage } from '../utils/ai';
 import type { GoalId } from '../stores/goalStore';
@@ -19,8 +21,20 @@ export default function GardenDashboard() {
   const userStore = useUserStore();
   const messageStore = useMessageStore();
   const checkInStore = useCheckInStore();
+  const ritualStore = useRitualStore();
+  const dailyGoalsStore = useDailyGoalsStore();
   
   const isHealthy = gameStore.gardenState === GardenStateEnum.Healthy;
+  
+  const [selectedRitual, setSelectedRitual] = useState<'morning' | 'evening' | null>(null);
+  const [selectedDailyGoal, setSelectedDailyGoal] = useState<string | null>(null);
+
+  // Reset daily rituals and goals on mount
+  useEffect(() => {
+    ritualStore.resetDailyRituals();
+    dailyGoalsStore.resetDailyGoals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
   // Get incomplete goals
   const incompleteGoals = goalStore.getIncompleteGoals();
@@ -686,6 +700,156 @@ export default function GardenDashboard() {
           </div>
         ))}
         
+        {/* Ritual Cards - Show if rituals are set up */}
+        {ritualStore.morningRitual?.setupCompleted && (
+          <div 
+            className="bg-white rounded-2xl p-4 shadow-md flex items-center gap-2 transition-all cursor-pointer hover:shadow-lg"
+            onClick={() => setSelectedRitual('morning')}
+          >
+            {/* Icon */}
+            <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center -ml-1" style={{ transform: 'rotate(-5deg)' }}>
+              <img 
+                src={getGoalIcon('morning-ritual')}
+                alt="Morning Ritual"
+                className="w-5 h-5 object-contain"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
+            
+            {/* Title */}
+            <span className="flex-1 text-black font-bold text-sm">
+              Morning Ritual
+            </span>
+            
+            {/* Progress */}
+            <span className="text-gray-600 text-xs">
+              {ritualStore.morningRitual.items.filter(i => i.completed).length}/{ritualStore.morningRitual.items.length}
+            </span>
+            
+            {/* Checkbox */}
+            <div 
+              className="flex-shrink-0 w-8 h-8 rounded-lg border-2 flex items-center justify-center"
+              style={{
+                backgroundColor: ritualStore.isRitualComplete('morning') ? '#4CAF50' : 'transparent',
+                borderColor: ritualStore.isRitualComplete('morning') ? '#4CAF50' : '#9CA3AF',
+              }}
+            >
+              {ritualStore.isRitualComplete('morning') && (
+                <CheckIcon className="w-5 h-5 text-white" />
+              )}
+            </div>
+          </div>
+        )}
+        
+        {ritualStore.eveningRitual?.setupCompleted && (
+          <div 
+            className="bg-white rounded-2xl p-4 shadow-md flex items-center gap-2 transition-all cursor-pointer hover:shadow-lg"
+            onClick={() => setSelectedRitual('evening')}
+          >
+            {/* Icon */}
+            <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center -ml-1" style={{ transform: 'rotate(-5deg)' }}>
+              <img 
+                src={getGoalIcon('evening-ritual')}
+                alt="Evening Ritual"
+                className="w-5 h-5 object-contain"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
+            
+            {/* Title */}
+            <span className="flex-1 text-black font-bold text-sm">
+              Evening Ritual
+            </span>
+            
+            {/* Progress */}
+            <span className="text-gray-600 text-xs">
+              {ritualStore.eveningRitual.items.filter(i => i.completed).length}/{ritualStore.eveningRitual.items.length}
+            </span>
+            
+            {/* Checkbox */}
+            <div 
+              className="flex-shrink-0 w-8 h-8 rounded-lg border-2 flex items-center justify-center"
+              style={{
+                backgroundColor: ritualStore.isRitualComplete('evening') ? '#4CAF50' : 'transparent',
+                borderColor: ritualStore.isRitualComplete('evening') ? '#4CAF50' : '#9CA3AF',
+              }}
+            >
+              {ritualStore.isRitualComplete('evening') && (
+                <CheckIcon className="w-5 h-5 text-white" />
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Daily Goals Module */}
+        {dailyGoalsStore.setupCompleted && dailyGoalsStore.goals.length > 0 && (
+          <div className="bg-white rounded-2xl p-4 shadow-md">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center -ml-1" style={{ transform: 'rotate(-5deg)' }}>
+                <img 
+                  src={getGoalIcon('daily-goals')}
+                  alt="Daily Goals"
+                  className="w-5 h-5 object-contain"
+                  loading="eager"
+                  decoding="async"
+                />
+              </div>
+              <span className="flex-1 text-black font-bold text-sm">Daily Goals</span>
+              <span className="text-gray-600 text-xs">
+                {dailyGoalsStore.goals.filter(g => g.completed).length}/{dailyGoalsStore.goals.length}
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goalStore.setSelectedGoal('daily-goals');
+                  dispatch({ type: 'NAVIGATE_TO', payload: 'goals' });
+                }}
+                className="text-gray-500 hover:text-gray-700 text-xs px-2 py-1"
+              >
+                Edit
+              </button>
+            </div>
+            
+            <div className="space-y-2">
+              {dailyGoalsStore.goals.map((goal) => (
+                <div
+                  key={goal.id}
+                  className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => {
+                    const allCompleted = dailyGoalsStore.toggleGoal(goal.id);
+                    if (allCompleted) {
+                      // All goals completed, award XP
+                      gameStore.addXP(10);
+                      gameStore.addCoins(5);
+                    }
+                  }}
+                >
+                  <div
+                    className="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center"
+                    style={{
+                      backgroundColor: goal.completed ? '#4CAF50' : 'transparent',
+                      borderColor: goal.completed ? '#4CAF50' : '#9CA3AF',
+                    }}
+                  >
+                    {goal.completed && (
+                      <CheckIcon className="w-3 h-3 text-white" />
+                    )}
+                  </div>
+                  <span
+                    className={`flex-1 text-sm ${
+                      goal.completed ? 'line-through text-gray-500' : 'text-black'
+                    }`}
+                  >
+                    {goal.text}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
         {/* Reset Everything Button (Dev Helper) */}
         <button
           onClick={() => {
@@ -713,6 +877,67 @@ export default function GardenDashboard() {
         </div>
       </div>
       </div>
+      
+      {/* Ritual Modal */}
+      {selectedRitual && (selectedRitual === 'morning' ? ritualStore.morningRitual : ritualStore.eveningRitual) && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 z-[99]"
+            onClick={() => setSelectedRitual(null)}
+          />
+
+          {/* Modal */}
+          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] bg-white rounded-2xl shadow-2xl p-6 w-[calc(100%-64px)] max-w-sm max-h-[80vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-black mb-4">
+              {selectedRitual === 'morning' ? 'Morning Ritual' : 'Evening Ritual'}
+            </h2>
+            
+            <div className="space-y-3 mb-6">
+              {(selectedRitual === 'morning' ? ritualStore.morningRitual : ritualStore.eveningRitual)?.items.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => {
+                    const wasCompleted = ritualStore.toggleRitualItem(selectedRitual, item.id);
+                    if (wasCompleted) {
+                      // Award rewards for completing ritual
+                      gameStore.addXP(25);
+                      gameStore.addCoins(10);
+                    }
+                  }}
+                >
+                  <div
+                    className="flex-shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center"
+                    style={{
+                      backgroundColor: item.completed ? '#4CAF50' : 'transparent',
+                      borderColor: item.completed ? '#4CAF50' : '#9CA3AF',
+                    }}
+                  >
+                    {item.completed && (
+                      <CheckIcon className="w-4 h-4 text-white" />
+                    )}
+                  </div>
+                  <span
+                    className={`flex-1 text-sm ${
+                      item.completed ? 'line-through text-gray-500' : 'text-black'
+                    }`}
+                  >
+                    {item.text}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setSelectedRitual(null)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

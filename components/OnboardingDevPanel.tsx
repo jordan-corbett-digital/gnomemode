@@ -21,8 +21,6 @@ export default function OnboardingDevPanel() {
 
   // Keyboard shortcuts for dev navigation
   useEffect(() => {
-    if (state.screen !== 'onboarding') return;
-
     const handleKeyPress = (e: KeyboardEvent) => {
       // Only work if dev panel is open or if holding Shift
       if (e.shiftKey) {
@@ -44,9 +42,7 @@ export default function OnboardingDevPanel() {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [state.screen, onboardingStep, isOpen, dispatch]);
-
-  if (state.screen !== 'onboarding') return null;
+  }, [onboardingStep, isOpen, dispatch]);
 
   const maxSteps = Math.max(ONBOARDING_STEPS.length, 1);
 

@@ -41,7 +41,6 @@ export default function CheckInResponseScreen() {
     );
   }
 
-  const didTheThing = latestRecord.response?.didTheThing ?? false;
   const xpReward = latestRecord.xpReward || 0;
   const wasLevelUp = gameStore.level > 1 && gameStore.xp > 0; // Simple check
 
@@ -57,10 +56,10 @@ export default function CheckInResponseScreen() {
 
         <div className="mb-6">
           <div className="text-6xl mb-4">
-            {didTheThing ? '😔' : '🎉'}
+            🎉
           </div>
           <h2 className="text-3xl font-bold mb-4">
-            {didTheThing ? 'Your gnome has thoughts...' : 'Nice work!'}
+            Check-in complete!
           </h2>
         </div>
 

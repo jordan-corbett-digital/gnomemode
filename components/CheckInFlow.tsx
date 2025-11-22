@@ -12,7 +12,6 @@ const StepFeeling: React.FC<{
   onNext: (feeling: string) => void;
 }> = ({ onNext }) => {
   const [feeling, setFeeling] = useState('');
-  const [feelingText, setFeelingText] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
 
   const feelingOptions = [
@@ -31,8 +30,8 @@ const StepFeeling: React.FC<{
   return (
     <div className="flex flex-col h-full justify-between p-6">
       <div className="flex-grow flex flex-col justify-center">
-        <h1 className="text-3xl font-bold text-white mb-2">How are you feeling?</h1>
-        <p className="text-gray-400 mb-8">Be honest. Your gnome can handle it.</p>
+        <h1 className="text-2xl font-bold text-black mb-2 text-center">How are you feeling?</h1>
+        <p className="text-black mb-8 text-center text-sm">Be honest. Your gnome can handle it.</p>
 
         <div className="space-y-3">
           {feelingOptions.map((option) => {
@@ -42,36 +41,24 @@ const StepFeeling: React.FC<{
               <button
                 key={option.value}
                 onClick={() => handleSelect(option.value, option.emoji)}
-                className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
                   isSelected
                     ? 'bg-green-500 border-green-600 text-white'
-                    : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'
+                    : 'bg-white border-slate-300 text-black hover:bg-gray-50'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-3xl">{option.emoji}</span>
-                  <div className="font-bold text-lg">{option.label}</div>
+                  <span className="text-2xl">{option.emoji}</span>
+                  <div className="font-bold text-base">{option.label}</div>
                 </div>
               </button>
             );
           })}
         </div>
-
-        {feeling && (
-          <div className="mt-6">
-            <label className="block text-white mb-2">Tell me more (optional)</label>
-            <textarea
-              value={feelingText}
-              onChange={(e) => setFeelingText(e.target.value)}
-              placeholder="What's going on?"
-              className="w-full p-3 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-green-500 focus:outline-none min-h-[100px]"
-            />
-          </div>
-        )}
       </div>
 
       <div className="mt-6">
-        <Button onClick={() => onNext(feelingText || feeling)} fullWidth disabled={!feeling}>
+        <Button onClick={() => onNext(feeling)} fullWidth disabled={!feeling}>
           Next
         </Button>
       </div>
@@ -79,120 +66,49 @@ const StepFeeling: React.FC<{
   );
 };
 
-// Step 2: Did you do the thing?
-const StepDidTheThing: React.FC<{
-  onNext: (didTheThing: boolean, context?: string) => void;
+// Step 2: Answer a question
+const StepQuestion: React.FC<{
+  onNext: (answer: string) => void;
   onBack: () => void;
 }> = ({ onNext, onBack }) => {
-  const userStore = useUserStore();
-  const [didTheThing, setDidTheThing] = useState<boolean | null>(null);
-  const [context, setContext] = useState('');
+  const [answer, setAnswer] = useState('');
+
+  // Random questions for reflection
+  const questions = [
+    "What's one thing you're grateful for today?",
+    "What challenged you today?",
+    "What's something you learned today?",
+    "What made you smile today?",
+    "What would you do differently if you could?",
+  ];
+
+  // Use a consistent question based on day to avoid changing on re-render
+  const [question] = useState(() => {
+    const day = new Date().getDate();
+    return questions[day % questions.length];
+  });
 
   return (
     <div className="flex flex-col h-full justify-between p-6">
       <div className="flex-grow flex flex-col justify-center">
-        <h1 className="text-3xl font-bold text-white mb-2">Did you do it?</h1>
-        <p className="text-gray-400 mb-8">
-          Did you {userStore.intention.join(' or ')} today?
-        </p>
-
-        <div className="space-y-3 mb-6">
-          <button
-            onClick={() => setDidTheThing(false)}
-            className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
-              didTheThing === false
-                ? 'bg-green-500 border-green-600 text-white'
-                : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">✅</span>
-              <div>
-                <div className="font-bold text-lg">No, I stayed strong</div>
-                <div className="text-sm opacity-90">I avoided it today</div>
-              </div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setDidTheThing(true)}
-            className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
-              didTheThing === true
-                ? 'bg-red-500 border-red-600 text-white'
-                : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">❌</span>
-              <div>
-                <div className="font-bold text-lg">Yes, I did it</div>
-                <div className="text-sm opacity-90">I slipped up</div>
-              </div>
-            </div>
-          </button>
-        </div>
-
-        {didTheThing !== null && (
-          <div>
-            <label className="block text-white mb-2">
-              {didTheThing ? 'What happened?' : 'What helped you stay strong?'} (optional)
-            </label>
-            <textarea
-              value={context}
-              onChange={(e) => setContext(e.target.value)}
-              placeholder="Tell me more..."
-              className="w-full p-3 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-green-500 focus:outline-none min-h-[100px]"
-            />
-          </div>
-        )}
-      </div>
-
-      <div className="mt-6 flex gap-3">
-        <Button onClick={onBack} className="flex-1 bg-slate-600 hover:bg-slate-700">
-          Back
-        </Button>
-        <Button
-          onClick={() => didTheThing !== null && onNext(didTheThing, context)}
-          fullWidth
-          disabled={didTheThing === null}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-// Step 3: Frequency/Understanding
-const StepFrequency: React.FC<{
-  onNext: (frequency: string) => void;
-  onBack: () => void;
-}> = ({ onNext, onBack }) => {
-  const [frequency, setFrequency] = useState('');
-
-  return (
-    <div className="flex flex-col h-full justify-between p-6">
-      <div className="flex-grow flex flex-col justify-center">
-        <h1 className="text-3xl font-bold text-white mb-2">Help me understand</h1>
-        <p className="text-gray-400 mb-8">
-          How often did you think about it today? When did it come up?
-        </p>
+        <h1 className="text-2xl font-bold text-black mb-2 text-center">One more thing</h1>
+        <p className="text-black mb-6 text-center text-sm">{question}</p>
 
         <div>
           <textarea
-            value={frequency}
-            onChange={(e) => setFrequency(e.target.value)}
-            placeholder="For example: 'I thought about it a few times in the afternoon, especially after lunch. It was hardest around 3pm when I usually...'"
-            className="w-full p-4 bg-slate-700 text-white rounded-lg border border-slate-600 focus:border-green-500 focus:outline-none min-h-[200px]"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            placeholder="Share your thoughts..."
+            className="w-full p-4 bg-white text-black rounded-xl border-2 border-slate-300 focus:border-green-600 focus:outline-none min-h-[150px] resize-none"
           />
         </div>
       </div>
 
       <div className="mt-6 flex gap-3">
-        <Button onClick={onBack} className="flex-1 bg-slate-600 hover:bg-slate-700">
+        <Button onClick={onBack} className="flex-1 bg-slate-400 hover:bg-slate-500 text-white">
           Back
         </Button>
-        <Button onClick={() => onNext(frequency)} fullWidth disabled={!frequency.trim()}>
+        <Button onClick={() => onNext(answer)} fullWidth disabled={!answer.trim()}>
           Complete Check-In
         </Button>
       </div>
@@ -215,31 +131,19 @@ export default function CheckInFlow() {
     setStep(2);
   };
 
-  const handleDidTheThingNext = (didTheThing: boolean, context?: string) => {
-    setResponse({ ...response, didTheThing, context });
-    setStep(3);
-  };
-
-  const handleFrequencyNext = async (frequency: string) => {
+  const handleQuestionNext = async (answer: string) => {
     const fullResponse: CheckInResponse = {
       feeling: response.feeling || '',
-      didTheThing: response.didTheThing ?? false,
-      frequency,
-      context: response.context,
+      didTheThing: false, // No longer tracking habits
+      frequency: answer, // Use frequency field to store the question answer
+      context: undefined,
     };
 
     setIsSubmitting(true);
 
     try {
-      // Calculate XP reward (honesty valued more than success)
+      // Calculate XP reward
       let xpReward = 30; // Base reward for checking in
-      if (!fullResponse.didTheThing) {
-        xpReward += 20; // Bonus for staying strong
-      }
-      // Bonus for honesty (if they did the thing but were honest about it)
-      if (fullResponse.didTheThing && fullResponse.context) {
-        xpReward += 15; // Honesty bonus
-      }
       // Add some variance
       xpReward += Math.floor(Math.random() * 10) - 5; // ±5 variance
 
@@ -247,12 +151,12 @@ export default function CheckInFlow() {
       const aiResponse = await generateGnomeMessage({
         tone: userStore.gnomeTone,
         gnomeName: userStore.gnomeName,
-        context: fullResponse.didTheThing ? 'checkin_fail' : 'checkin_success',
+        context: 'checkin_success',
         userData: {
           streak: gameStore.streak,
           level: gameStore.level,
           day: gameStore.day,
-          intention: userStore.intention,
+          intention: [],
         },
       });
 
@@ -285,14 +189,8 @@ export default function CheckInFlow() {
       const wasLevelUp = gameStore.addXP(xpReward);
       gameStore.addCoins(10);
 
-      // Update game state
-      if (!fullResponse.didTheThing) {
-        gameStore.checkInSuccess();
-      } else {
-        // Still count as checked in, but mark as failure
-        const today = new Date().toISOString().split('T')[0];
-        gameStore.checkInFail(0); // No money penalty for now
-      }
+      // Update game state - always success for check-in
+      gameStore.checkInSuccess();
 
       // Navigate to response screen
       dispatch({ type: 'NAVIGATE_TO', payload: 'checkin-response' });
@@ -302,15 +200,15 @@ export default function CheckInFlow() {
     }
   };
 
-  const totalSteps = 3;
+  const totalSteps = 2;
   const progress = (step / totalSteps) * 100;
 
   if (isSubmitting) {
     return (
-      <div className="h-full w-full flex flex-col items-center justify-center p-6 bg-slate-800">
+      <div className="h-full w-full flex flex-col items-center justify-center p-6" style={{ backgroundColor: '#c5e1f2' }}>
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white text-lg">Your gnome is processing...</p>
+          <p className="text-black text-lg font-semibold">Your gnome is processing...</p>
         </div>
       </div>
     );
@@ -319,9 +217,9 @@ export default function CheckInFlow() {
   return (
     <div className="h-full w-full flex flex-col" style={{ backgroundColor: '#c5e1f2' }}>
       {/* Progress Bar */}
-      <div className="w-full bg-slate-700 h-2.5">
+      <div className="w-full bg-slate-200 h-2">
         <div
-          className="bg-green-500 h-2.5 transition-all duration-300"
+          className="bg-green-500 h-2 transition-all duration-300"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -330,19 +228,12 @@ export default function CheckInFlow() {
       <div className="flex-grow overflow-y-auto hide-scrollbar">
         {step === 1 && <StepFeeling onNext={handleFeelingNext} />}
         {step === 2 && (
-          <StepDidTheThing
-            onNext={handleDidTheThingNext}
+          <StepQuestion
+            onNext={handleQuestionNext}
             onBack={() => setStep(1)}
-          />
-        )}
-        {step === 3 && (
-          <StepFrequency
-            onNext={handleFrequencyNext}
-            onBack={() => setStep(2)}
           />
         )}
       </div>
     </div>
   );
 }
-
